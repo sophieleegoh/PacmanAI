@@ -13,7 +13,6 @@
 
 from game import Agent
 from searchProblems import PositionSearchProblem
-from pacman import GameState
 
 import util
 import time
@@ -41,14 +40,18 @@ class MyAgent(Agent):
         "*** YOUR CODE HERE ***"
 
         problem = AnyFoodSearchProblem(state, self.index)
-        pacmen_locations = GameState.getPacmanPositions(state)
-        current_pacman_location = GameState.getPacmanPosition(state, self.index)
+        pacmen_locations = state.getPacmanPositions()
+        current = state.getPacmanPosition(self.index)
 
-        same = False
+        near = False
         index = 0
         for location in pacmen_locations:
-            if location == current_pacman_location and index != self.index:
-                same = True
+            if index != self.index:
+                if location[0] in {current[0] - 1, current[0], current[0] + 1} and location[1] in (current[1] - 1, current[1], current[1] + 1):
+                    near = True
+                    print(location)
+                    print(self.index)
+                    break
             index += 1
 
         #caching bfs
@@ -56,11 +59,9 @@ class MyAgent(Agent):
             self.moves = search.bfs(problem)
             print(self.moves)
 
-        if same:
-            print("whoopsie")
-            move = random.choice(["North", "East", "South", "West"])
-            while move not in GameState.getLegalActions(state, self.index):
-                move = random.choice(["North", "East", "South", "West"])
+        if near:
+            move = random.choice(state.getLegalPacmanActions(self.index))
+            self.moves = []
             return move
 
 
