@@ -50,20 +50,29 @@ class MyAgent(Agent):
                 if location[0] in {current[0] - 1, current[0], current[0] + 1} and location[1] in (current[1] - 1, current[1], current[1] + 1):
                     near = True
                     print(location)
-                    print(self.index)
                     break
+                if len(self.moves) > 0:
+                    if location == state.generatePacmanSuccessor(self.moves[0], self.index):
+                        near = True
+                        print(location)
+                        break
             index += 1
 
         #caching bfs
         if len(self.moves) == 0:
             self.moves = search.bfs(problem)
             print(self.moves)
+            self.target = self.getTarget(state, self.moves)
 
         if near:
-            move = random.choice(state.getLegalPacmanActions(self.index))
             self.moves = []
-            return move
+            print(len(self.moves))
+            if len(self.moves) < 2 and len(self.moves) > 0:
+                return self.moves.pop(0)
 
+            if self.priority in state.getLegalPacmanActions(self.index):
+                return self.priority
+            return random.choice(state.getLegalPacmanActions(self.index))
 
         return self.moves.pop(0)
 
@@ -80,6 +89,31 @@ class MyAgent(Agent):
         #raise NotImplementedError()
         self.moves = []
 
+        if self.index % 4 == 0:
+            self.priority = 'North'
+        elif self.index % 4 == 1:
+            self.priority = 'East'
+        elif self.index % 4 == 2:
+            self.priority = 'South'
+        else:
+            self.priority = 'West'
+
+        self.target = ()
+
+
+    def getTarget(self, state, moves):
+        x, y = state.getPacmanPosition(self.index)
+        for move in moves:
+            if move == 'North':
+                y += 1
+            elif move == 'East':
+                x += 1
+            elif move == 'South':
+                y -= 1
+            else:
+                x -= 1
+
+        return (x, y)
 
 #NOT USED
     def search1(self, gameState):

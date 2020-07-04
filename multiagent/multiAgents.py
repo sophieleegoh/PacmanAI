@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -74,7 +74,14 @@ class ReflexAgent(Agent):
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        foodList = newFood.asList()
+
+        closest_food = float("infinity")
+
+        for food in foodList:
+            closest_food = min(closest_food, manhattanDistance(newPos, food))
+
+        return successorGameState.getScore() + 1.0/closest_food
 
 def scoreEvaluationFunction(currentGameState):
     """
@@ -135,7 +142,64 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        actions = self.max_value(gameState, 0, 0)
+        return actions[0]
+
+    def max_value(self, state, index, depth):
+        v = -float("infinity")
+        actions_list = state.getLegalActions(index)
+        a = "" #actual action taken
+
+        if len(actions_list) == 0:
+            return self.evaluationFunction(state)
+
+        for action in actions_list:
+            successors = state.generateSuccessor(index, action)
+            weight = self.min_max(successors, index + 1, depth)
+
+            if weight > v:
+                v = weight
+                a = action
+
+        return [a, v]
+
+    def min_value(self, state, index, depth):
+        v = float("infinity")
+        actions_list = state.getLegalActions(index)
+        a = "" #actual action taken
+
+        if len(actions_list) == 0:
+            return self.evaluationFunction(state)
+
+        for action in actions_list:
+            successors = state.generateSuccessor(index, action)
+            weight = self.min_max(successors, index + 1, depth)
+
+            if weight < v:
+                v = weight
+                a = action
+
+        return [a, v]
+
+
+    """
+        If the index is 0, that means it is Pac man. Anything > 0 is a ghost
+    """
+    def min_max(self, state, index, depth):
+        if index >= state.getNumAgents():
+            depth += 1
+            index = 0
+
+        if depth == self.depth or state.isWin() or state.isLose():
+            return self.evaluationFunction(state)
+
+        if index == 0:
+            return self.max_value(state, index, depth)[1]
+
+        if index > 0:
+            return self.min_value(state, index, depth)[1]
+
+
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
