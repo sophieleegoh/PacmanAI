@@ -83,6 +83,7 @@ class ReflexAgent(Agent):
 
         return successorGameState.getScore() + 1.0/closest_food
 
+
 def scoreEvaluationFunction(currentGameState):
     """
     This default evaluation function just returns the score of the state.
@@ -211,7 +212,70 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        actions = self.max_value(gameState, 0, 0, -float("infinity"), float("infinity"))
+        return actions[0]
+
+    def max_value(self, state, index, depth, a, b):
+        v = -float("infinity")
+        actions_list = state.getLegalActions(index)
+        m = "" #actual action taken
+
+        if len(actions_list) == 0:
+            return self.evaluationFunction(state)
+
+        for action in actions_list:
+            successors = state.generateSuccessor(index, action)
+            weight = self.min_max(successors, index + 1, depth, a, b)
+
+            if weight > v:
+                v = weight
+                m = action
+
+            if weight > b:
+                break
+
+            a = max(a, weight)
+        return [m, v]
+
+    def min_value(self, state, index, depth, a, b):
+        v = float("infinity")
+        actions_list = state.getLegalActions(index)
+        m = "" #actual action taken
+
+        if len(actions_list) == 0:
+            return self.evaluationFunction(state)
+
+        for action in actions_list:
+            successors = state.generateSuccessor(index, action)
+            weight = self.min_max(successors, index + 1, depth, a, b)
+
+            if weight < v:
+                v = weight
+                m = action
+
+            if weight < a:
+                break
+
+            b = min(b, weight)
+        return [m, v]
+
+
+    """
+        If the index is 0, that means it is Pac man. Anything > 0 is a ghost
+    """
+    def min_max(self, state, index, depth, a, b):
+        if index >= state.getNumAgents():
+            depth += 1
+            index = 0
+
+        if depth == self.depth or state.isWin() or state.isLose():
+            return self.evaluationFunction(state)
+
+        if index == 0:
+            return self.max_value(state, index, depth, a, b)[1]
+
+        if index > 0:
+            return self.min_value(state, index, depth, a, b)[1]
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
