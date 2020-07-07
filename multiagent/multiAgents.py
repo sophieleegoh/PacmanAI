@@ -296,7 +296,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
     def max_value(self, state, index, depth):
         v = -float("infinity")
         actions_list = state.getLegalActions(index)
-        m = "" #actual action taken
+        m = actions_list[0] #actual action taken
 
         if len(actions_list) == 0:
             return self.evaluationFunction(state)
@@ -351,7 +351,58 @@ def betterEvaluationFunction(currentGameState):
     DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+
+    food = currentGameState.getFood().asList()
+    position = currentGameState.getPacmanPosition()
+    ghosts = currentGameState.getGhostStates()
+    capsules = currentGameState.getCapsules()
+
+    closestFood = float("infinity")
+    for f in food:
+        closestFood = min(closestFood, manhattanDistance(position, f))
+
+    enemy_ghosts = []
+    food_ghosts = []
+
+    for g in ghosts:
+        if g.scaredTimer:
+            food_ghosts.append(g)
+        else:
+            enemy_ghosts.append(g)
+
+    closestCapsule = float("infinity")
+    for c in capsules:
+        closestCapsule = min(closestCapsule, manhattanDistance(position, c))
+
+
+    additionalScore = 0
+    # Lots of remaining food is bad
+    additionalScore -= currentGameState.getNumFood()
+
+    if closestFood < 5:
+        additionalScore += 100
+
+    if closestCapsule < 2:
+        additionalScore += 1000
+
+    for ghost in food_ghosts:
+        distance = manhattanDistance(position, ghost.getPosition())
+        if distance < 5:
+            additionalScore += 100000 * distance
+
+    for ghost in enemy_ghosts:
+        if manhattanDistance(position, ghost.getPosition()) < 4:
+            additionalScore -= float("infinity")
+
+    if currentGameState.isWin():
+        additionalScore = float("infinity")
+
+    #print(additionalScore)
+
+    return currentGameState.getScore() + 1.0/additionalScore
+
+
 
 # Abbreviation
 better = betterEvaluationFunction
